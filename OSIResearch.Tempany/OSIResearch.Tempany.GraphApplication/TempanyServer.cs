@@ -125,7 +125,7 @@ namespace OSIResearch.Tempany.GraphApplication
             return GetTimestampCellAfterTime(snapshot, timestamp);
         }
 
-        private TimestampPointerDTO GetTimestampCellAfterTime(TimestampPointerDTO currentTimeCellDTO, long timestamp)
+        private TimestampPointerDTO GetTimestampCellAfterTimeRecursive(TimestampPointerDTO currentTimeCellDTO, long timestamp)
         {
             TimestampPointerDTO previousTimeCellDTO = GetPreviousTimestampCellId(currentTimeCellDTO, timestamp);
 
@@ -137,6 +137,22 @@ namespace OSIResearch.Tempany.GraphApplication
             {
                 return GetTimestampCellAfterTime(previousTimeCellDTO, timestamp); // logN
             }
+        }
+
+
+        private TimestampPointerDTO GetTimestampCellAfterTime(TimestampPointerDTO currentTimeCellDTO, long timestamp)
+        {
+            TimestampPointerDTO previousTimeCellDTO;
+            while (true)
+            {
+                previousTimeCellDTO = GetPreviousTimestampCellId(currentTimeCellDTO, timestamp);
+                if (previousTimeCellDTO.Id == currentTimeCellDTO.Id)
+                    break;
+                currentTimeCellDTO = previousTimeCellDTO;
+            }
+
+            return currentTimeCellDTO;
+
         }
 
         private TimestampPointerDTO? GetImmediatePredecessorTimestampCell(long cellId)

@@ -33,8 +33,8 @@ namespace OSIResearch.Tempany.GraphApplication
 
             long streamCellId = createStreamResponse.Id;
 
-            int minutes = 300;
-            int valuesPerMinute = 1;
+            int minutes = 360000;
+            int valuesPerMinute = 60;
             
             DateTimeOffset now = DateTimeOffset.UtcNow;
             DateTimeOffset startTime = now - TimeSpan.FromMinutes(minutes);
