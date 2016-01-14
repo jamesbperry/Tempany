@@ -1,0 +1,174 @@
+TrinitySettings
+{
+	RootNamespace: OSIResearch.Tempany.Generated;
+}
+
+server TempanyServer
+{
+	protocol InsertStreamValue;
+	protocol GetStreamValue;
+	protocol GetStreamValues;
+	protocol CreateStream;	
+}
+
+protocol CreateStream
+{
+	Type:Syn;
+	Request:CreateStreamArgs;
+	Response:CellIdentifier;
+}
+
+protocol InsertStreamValue
+{
+	Type:Syn;
+	Request:StreamValueCollectionDTO;
+	Response:void;
+}
+
+protocol GetStreamValue
+{
+	Type:Syn;
+	Request:GetStreamValueArgs;
+	Response:StreamValueCollectionDTO;
+}
+
+protocol GetStreamValues
+{
+	Type:Syn;
+	Request:GetStreamValuesArgs;
+	Response:StreamValueCollectionsDTO;	
+}
+
+protocol GetMorphon
+{
+	Type:Syn;
+	Request:GetMorphonArgs;
+	Response:MorphonDTO;	
+}
+
+struct GetMorphonArgs
+{
+	optional string MorphonType;
+	optional long MorphonCellId;
+	optional List<string> Connections;	
+}
+
+struct MorphonDTO
+{
+	List<NamedStreamDTO> NamedStreams;
+}
+
+struct NamedStreamDTO
+{
+	string Name;
+	bool IsIdentifier;
+	long SnapshotCellId;
+	byte ValueType;
+	optional string ValueTypeDiscriminator;	
+}
+
+struct GetStreamValueArgs
+{
+	long StreamCellId;
+	long Timestamp;	
+}
+
+struct GetStreamValuesArgs
+{
+	long StreamCellId;
+	long StartTime;
+	long EndTime;
+	byte RetrievalMode;
+}
+
+struct StreamValueCollectionsDTO
+{
+	List<StreamValueCollectionDTO> ValueCollections;
+}
+
+struct StreamValueCollectionDTO
+{
+	List<StreamValueDTO> Values;
+	long Timestamp;
+	long StreamCellId;
+}
+
+struct StreamValueDTO
+{	
+	optional long CellValue;
+	optional double NumericValue;
+	optional string StringValue;
+	optional long DigitalValue;
+}
+
+struct CreateStreamArgs
+{
+	byte ValueType;
+	optional string ValueTypeDiscriminator;
+}
+
+struct CellIdentifier
+{
+	long Id;	
+}
+
+struct TimestampPointerDTO
+{
+	long Id;	
+	long Ticks;
+	long Values;
+	List<long> Previous;
+}
+
+cell struct Morphon
+{
+	List<CellId> NamedStreams;
+}
+
+cell struct NamedStream
+{
+	string Name;
+	bool IsIdentifier;
+	CellId TempanyStream;
+}
+
+cell struct TempanyStream
+{
+	CellId Snapshot;
+	byte ValueType;
+	optional string ValueTypeDiscriminator;
+	int IndexHeight;
+}
+
+cell struct Timestamp
+{
+	long Ticks;
+	CellId Values;
+	List<CellId> Previous;
+}
+
+cell struct StreamValueCollection
+{
+	List<CellId> Values;
+}
+
+cell struct StreamValue
+{	
+	optional long CellValue;
+	optional double NumericValue;
+	optional string StringValue;
+	optional long DigitalValue;
+}
+
+cell struct DigitalSet
+{
+	string Name;	
+	List<CellId> DigitalValues;
+}
+
+cell struct DigitalValue
+{
+	long DigitalSet;
+	int Value;
+	string Name;	
+}
