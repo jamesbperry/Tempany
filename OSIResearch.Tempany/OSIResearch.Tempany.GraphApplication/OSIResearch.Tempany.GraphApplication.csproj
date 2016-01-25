@@ -48,7 +48,10 @@
     <Compile Include="DTOFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TempanyServer.cs" />
+    <Compile Include="TempanyServer_Core.cs" />
+    <Compile Include="TempanyServer_CellStreams.cs" />
+    <Compile Include="TempanyServer_Morphons.cs" />
+    <Compile Include="TempanyServer_Streams.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OSIResearch.Tempany.Core\OSIResearch.Tempany.Core.csproj">

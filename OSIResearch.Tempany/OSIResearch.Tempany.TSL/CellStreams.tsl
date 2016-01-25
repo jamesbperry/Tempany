@@ -1,0 +1,52 @@
+protocol CreateCellStream
+{
+	Type:Syn;
+	Request:CreateCellStreamArgs;
+	Response:CellIdentifier;
+}
+
+protocol GetCellStreamValue
+{
+	Type:Syn;
+	Request:GetCellStreamValueArgs;
+	Response:CellStreamValueCollectionDTO;
+}
+
+protocol InsertCellStreamValue
+{
+	Type:Syn;
+	Request:InsertCellStreamValueArgs;
+	Response:void;
+}
+
+
+struct CreateCellStreamArgs
+{
+	
+}
+
+struct InsertCellStreamValueArgs
+{
+	long CellStream;	
+	long Ticks;
+	long Morphon;
+	bool IsMember;
+}
+
+struct GetCellStreamValueArgs
+{
+	long CellStreamId;
+	long Ticks;
+}
+
+struct CellStreamValueCollectionsDTO
+{
+	List<CellStreamValueCollectionDTO> ValueCollections;
+}
+
+struct CellStreamValueCollectionDTO
+{
+	long Ticks;
+	long CellStreamId;
+	List<long> Members;
+}

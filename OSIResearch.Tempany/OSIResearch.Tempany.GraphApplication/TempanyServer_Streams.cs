@@ -11,22 +11,18 @@ using OSIResearch.Tempany.Core;
 using System.Collections.Concurrent;
 using System.Threading;
 
+
 namespace OSIResearch.Tempany.GraphApplication
 {
-    class TempanyServer : TempanyServerBase
+    partial class TempanyServer
     {
-#if MEMCLOUD
-        private Trinity.Storage.MemoryCloud Storage { get { return Global.CloudStorage; } }
-#else
-        private Trinity.Storage.LocalMemoryStorage Storage { get { return Global.LocalStorage; } }
-#endif
 
         public override void CreateStreamHandler(CreateStreamArgsReader request, CellIdentifierWriter response)
         {
             Timestamp emptySnapshot = new Timestamp(Ticks: 0, Values: 0); //TODO real treatment of the null snapshot
             Storage.SaveTimestamp(emptySnapshot);
 
-            TempanyStream newStream = new TempanyStream(ValueType: request.ValueType, IndexHeight:4, Snapshot: emptySnapshot.CellID);
+            TempanyStream newStream = new TempanyStream(ValueType: request.ValueType, IndexHeight: 4, Snapshot: emptySnapshot.CellID);
             if (request.Contains_ValueTypeDiscriminator) newStream.ValueTypeDiscriminator = request.ValueTypeDiscriminator;
             Storage.SaveTempanyStream(newStream);
 
@@ -63,7 +59,7 @@ namespace OSIResearch.Tempany.GraphApplication
             {
                 return;
             }
-            
+
             TimestampPointerDTO? cellBeforeTime = GetImmediatePredecessorTimestampCell(cellAfterTime.Value.Id);
             if (!cellBeforeTime.HasValue)
             {
@@ -178,11 +174,11 @@ namespace OSIResearch.Tempany.GraphApplication
                 }
             }
         }
-        
+
         private TimestampPointerDTO GetPreviousTimestampCellId(TimestampPointerDTO currentCell, long referenceTicks)
         {
             List<long> previousTimeCellIds = currentCell.Previous;
-            long previousTimeCellId =  previousTimeCellIds[0];
+            long previousTimeCellId = previousTimeCellIds[0];
 
             for (int i = previousTimeCellIds.Count - 1; i >= 0; i--)
             {
@@ -277,7 +273,7 @@ namespace OSIResearch.Tempany.GraphApplication
                     streamCell.IndexHeight = newLevel;
                 }
             }
-            
+
         }
 
         private int GetRandomLevel(int currentHeight)
@@ -288,23 +284,9 @@ namespace OSIResearch.Tempany.GraphApplication
 
             const double p = 0.5; //.25;
             Random r = new Random();
-            for (level = 1; r.NextDouble() < p && level < maxLevel; level++);
+            for (level = 1; r.NextDouble() < p && level < maxLevel; level++) ;
             return level;
         }
 
-        public override void CreateCellStreamHandler(CreateCellStreamArgsReader request, CellIdentifierWriter response)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void GetCellStreamValueHandler(GetCellStreamValueArgsReader request, CellStreamValueCollectionDTOWriter response)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void InsertCellStreamValueHandler(InsertCellStreamValueArgsReader request)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

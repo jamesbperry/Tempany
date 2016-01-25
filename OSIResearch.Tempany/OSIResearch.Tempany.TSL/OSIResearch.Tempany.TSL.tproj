@@ -75,6 +75,12 @@
   <Target Name="Rebuild" DependsOnTargets="Clean;Build">
   </Target>
   <ItemGroup>
+    <Content Include="CellStreams.tsl">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Morphon.tsl">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Streams.tsl" />
     <Content Include="TempanyServer.tsl">
       <SubType>Content</SubType>

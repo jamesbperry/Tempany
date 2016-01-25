@@ -1,0 +1,35 @@
+protocol GetMorphon
+{
+	Type:Syn;
+	Request:GetMorphonArgs;
+	Response:MorphonDTO;	
+}
+
+struct SearchMorphonsArgs
+{
+	
+}
+
+struct GetMorphonArgs
+{
+	optional string MorphonType;
+	optional long MorphonCellId;
+}
+
+struct MorphonDTO
+{
+	List<NamedStreamDTO> NamedStreams;
+}
+
+cell struct Morphon
+{
+	List<CellId> NamedStreams;
+	List<CellId> MemberOf;
+}
+
+cell struct NamedStream
+{
+	string Name;
+	bool IsIdentifier;
+	CellId TempanyStream;
+}
