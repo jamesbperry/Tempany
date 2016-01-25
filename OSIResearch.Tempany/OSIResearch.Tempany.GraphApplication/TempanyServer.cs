@@ -13,25 +13,22 @@ using System.Threading;
 
 namespace OSIResearch.Tempany.GraphApplication
 {
-    class TempanyInsertion
-    {
-        public StreamValueCollectionDTO Request;
-        public void Populate(StreamValueCollectionDTOReader requestReader)
-        {
-            Request = new StreamValueCollectionDTO(Values: requestReader.Values, Timestamp: requestReader.Timestamp, StreamCellId: requestReader.StreamCellId);
-        }
-    }
-
     class TempanyServer : TempanyServerBase
     {
+#if MEMCLOUD
+        private Trinity.Storage.MemoryCloud Storage { get { return Global.CloudStorage; } }
+#else
+        private Trinity.Storage.LocalMemoryStorage Storage { get { return Global.LocalStorage; } }
+#endif
+
         public override void CreateStreamHandler(CreateStreamArgsReader request, CellIdentifierWriter response)
         {
             Timestamp emptySnapshot = new Timestamp(Ticks: 0, Values: 0); //TODO real treatment of the null snapshot
-            Global.LocalStorage.SaveTimestamp(emptySnapshot);
+            Storage.SaveTimestamp(emptySnapshot);
 
             TempanyStream newStream = new TempanyStream(ValueType: request.ValueType, IndexHeight:4, Snapshot: emptySnapshot.CellID);
             if (request.Contains_ValueTypeDiscriminator) newStream.ValueTypeDiscriminator = request.ValueTypeDiscriminator;
-            Global.LocalStorage.SaveTempanyStream(newStream);
+            Storage.SaveTempanyStream(newStream);
 
             response.Id = newStream.CellID;
         }
@@ -79,12 +76,12 @@ namespace OSIResearch.Tempany.GraphApplication
         private TimestampPointerDTO? GetSnapshotTimestamp(long streamCellId)
         {
             long streamSnapshotCellId;
-            using (var streamCell = Global.LocalStorage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var streamCell = Storage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 streamSnapshotCellId = streamCell.Snapshot;
             }
 
-            using (var snapshotTimestamp = Global.LocalStorage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var snapshotTimestamp = Storage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 return snapshotTimestamp.ToTimestampPointerDTO();
             }
@@ -158,7 +155,7 @@ namespace OSIResearch.Tempany.GraphApplication
         private TimestampPointerDTO? GetImmediatePredecessorTimestampCell(long cellId)
         {
             List<long> previousCells;
-            using (var currentCell = Global.LocalStorage.UseTimestamp(cellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var currentCell = Storage.UseTimestamp(cellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 previousCells = currentCell.Previous;
             }
@@ -169,7 +166,7 @@ namespace OSIResearch.Tempany.GraphApplication
             }
 
             long previousCellId = previousCells[0];
-            using (var previousCell = Global.LocalStorage.UseTimestamp(previousCellId, CellAccessOptions.ReturnNullOnCellNotFound))
+            using (var previousCell = Storage.UseTimestamp(previousCellId, CellAccessOptions.ReturnNullOnCellNotFound))
             {
                 if (previousCell == null)
                 {
@@ -190,7 +187,7 @@ namespace OSIResearch.Tempany.GraphApplication
             for (int i = previousTimeCellIds.Count - 1; i >= 0; i--)
             {
                 previousTimeCellId = previousTimeCellIds[i];
-                using (var previousTimeCell = Global.LocalStorage.UseTimestamp(previousTimeCellId, CellAccessOptions.ReturnNullOnCellNotFound))
+                using (var previousTimeCell = Storage.UseTimestamp(previousTimeCellId, CellAccessOptions.ReturnNullOnCellNotFound))
                 {
                     if (previousTimeCell == null)
                     {
@@ -215,7 +212,7 @@ namespace OSIResearch.Tempany.GraphApplication
             int indexHeight;
 
             //Stream
-            using (var streamCell = Global.LocalStorage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var streamCell = Storage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 indexHeight = streamCell.IndexHeight;
                 streamType = (StreamType)streamCell.ValueType;
@@ -229,7 +226,7 @@ namespace OSIResearch.Tempany.GraphApplication
             {
                 StreamValue valueCell = new StreamValue(); //ugly struct hack, unnecessary construction
                 valuesDto.CreateCell(ref valueCell);
-                Global.LocalStorage.SaveStreamValue(valueCell);
+                Storage.SaveStreamValue(valueCell);
                 newValueCells.Add(valueCell);
             }
 
@@ -237,7 +234,7 @@ namespace OSIResearch.Tempany.GraphApplication
 
             //New values collection
             StreamValueCollection newValues = new StreamValueCollection(newValueCellsIds);
-            Global.LocalStorage.SaveStreamValueCollection(newValues);
+            Storage.SaveStreamValueCollection(newValues);
 
             int newLevel = GetRandomLevel(indexHeight);
 
@@ -245,7 +242,7 @@ namespace OSIResearch.Tempany.GraphApplication
             List<long> existingPreviousPointers;
             long existingTimestamp;
             long existingValues;
-            using (var streamSnapshotCell = Global.LocalStorage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var streamSnapshotCell = Storage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 existingTimestamp = streamSnapshotCell.Ticks;
                 existingValues = streamSnapshotCell.Values;
@@ -261,11 +258,11 @@ namespace OSIResearch.Tempany.GraphApplication
             //New timestamp to hold existing snapshot
             List<long> trimmedExistingPreviousPointers = existingPreviousPointers.Take(newLevel).ToList();
             Timestamp shiftedExistingSnapshot = new Timestamp(existingTimestamp, existingValues, trimmedExistingPreviousPointers);
-            Global.LocalStorage.SaveTimestamp(shiftedExistingSnapshot);
+            Storage.SaveTimestamp(shiftedExistingSnapshot);
 
             //Update existing snapshot
             List<long> newPreviousPointers = Enumerable.Range(0, newLevel).Select(i => shiftedExistingSnapshot.CellID).Concat(existingPreviousPointers.Skip(newLevel)).ToList();
-            using (var streamSnapshotCell = Global.LocalStorage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+            using (var streamSnapshotCell = Storage.UseTimestamp(streamSnapshotCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
             {
                 streamSnapshotCell.Ticks = request.Timestamp;
                 streamSnapshotCell.Values = newValues.CellID;
@@ -275,7 +272,7 @@ namespace OSIResearch.Tempany.GraphApplication
             //update index height if increased
             if (newLevel > indexHeight)
             {
-                using (var streamCell = Global.LocalStorage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
+                using (var streamCell = Storage.UseTempanyStream(streamCellId, CellAccessOptions.ThrowExceptionOnCellNotFound))
                 {
                     streamCell.IndexHeight = newLevel;
                 }
@@ -293,6 +290,21 @@ namespace OSIResearch.Tempany.GraphApplication
             Random r = new Random();
             for (level = 1; r.NextDouble() < p && level < maxLevel; level++);
             return level;
+        }
+
+        public override void CreateCellStreamHandler(CreateCellStreamArgsReader request, CellIdentifierWriter response)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void GetCellStreamValueHandler(GetCellStreamValueArgsReader request, CellStreamValueCollectionDTOWriter response)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void InsertCellStreamValueHandler(InsertCellStreamValueArgsReader request)
+        {
+            throw new NotImplementedException();
         }
     }
 }

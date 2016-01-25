@@ -8,7 +8,11 @@ server TempanyServer
 	protocol InsertStreamValue;
 	protocol GetStreamValue;
 	protocol GetStreamValues;
-	protocol CreateStream;	
+	protocol CreateStream;
+	
+	protocol CreateCellStream;
+	protocol GetCellStreamValue;
+	protocol InsertCellStreamValue;	
 }
 
 protocol CreateStream
@@ -39,6 +43,27 @@ protocol GetStreamValues
 	Response:StreamValueCollectionsDTO;	
 }
 
+protocol CreateCellStream
+{
+	Type:Syn;
+	Request:CreateCellStreamArgs;
+	Response:CellIdentifier;
+}
+
+protocol GetCellStreamValue
+{
+	Type:Syn;
+	Request:GetCellStreamValueArgs;
+	Response:CellStreamValueCollectionDTO;
+}
+
+protocol InsertCellStreamValue
+{
+	Type:Syn;
+	Request:InsertCellStreamValueArgs;
+	Response:void;
+}
+
 protocol GetMorphon
 {
 	Type:Syn;
@@ -46,11 +71,46 @@ protocol GetMorphon
 	Response:MorphonDTO;	
 }
 
+struct CreateCellStreamArgs
+{
+	
+}
+
+struct InsertCellStreamValueArgs
+{
+	long CellStream;	
+	long Ticks;
+	long Morphon;
+	bool IsMember;
+}
+
+struct GetCellStreamValueArgs
+{
+	long CellStreamId;
+	long Ticks;
+}
+
+struct CellStreamValueCollectionsDTO
+{
+	List<CellStreamValueCollectionDTO> ValueCollections;
+}
+
+struct CellStreamValueCollectionDTO
+{
+	long Ticks;
+	long CellStreamId;
+	List<long> Members;
+}
+
+struct SearchMorphonsArgs
+{
+	
+}
+
 struct GetMorphonArgs
 {
 	optional string MorphonType;
 	optional long MorphonCellId;
-	optional List<string> Connections;	
 }
 
 struct MorphonDTO
@@ -123,6 +183,7 @@ struct TimestampPointerDTO
 cell struct Morphon
 {
 	List<CellId> NamedStreams;
+	List<CellId> MemberOf;
 }
 
 cell struct NamedStream
@@ -138,6 +199,27 @@ cell struct TempanyStream
 	byte ValueType;
 	optional string ValueTypeDiscriminator;
 	int IndexHeight;
+}
+
+cell struct TempanyCellCollectionStream
+{
+	long Id;
+	List<CellId> Streams;
+}
+
+cell struct TempanyCellStream
+{
+	long Id;
+	CellId Collection;
+	CellId Morphon;
+	TempanyCellStreamValue Snapshot;
+	List<TempanyCellStreamValue> Values;
+}
+
+struct TempanyCellStreamValue
+{
+	bool IsMember;
+	long Ticks;
 }
 
 cell struct Timestamp
